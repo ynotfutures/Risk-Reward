@@ -1,0 +1,82 @@
+/*==========================================================================*/
+SCSFExport scsf_UseToolExampleRewardRisk(SCStudyInterfaceRef sc)
+{
+	// Set configuration variables
+	if (sc.SetDefaults)
+	{
+		sc.GraphName = "UseTool Example: Reward/Risk";
+		sc.StudyDescription = "";
+
+		sc.GraphRegion = 0;
+		
+		sc.AutoLoop = 0; //No automatically looping
+
+		return;
+	}
+
+	// Do data processing	
+	int BarIndex = sc.ArraySize - 1;
+
+	if (BarIndex < 20)
+		return;
+
+	float Entry  = sc.Close[BarIndex-1];
+	float Stop   = Entry - 10 * sc.TickSize;
+	float Target = Entry + 20 * sc.TickSize;
+
+	s_UseTool Tool;  
+
+	Tool.ChartNumber = sc.ChartNumber;
+	int &LineNumber = sc.GetPersistentInt(1);
+	if(LineNumber != 0)
+		Tool.LineNumber = LineNumber;
+	Tool.Region = 0;
+	Tool.AddMethod = UTAM_ADD_OR_ADJUST;
+
+	Tool.DrawingType = DRAWING_REWARD_RISK;
+	
+	Tool.BeginIndex = BarIndex - 2;
+	Tool.BeginValue = Stop;
+	Tool.EndIndex = BarIndex - 1;
+	Tool.EndValue = Entry;
+	Tool.ThirdIndex = BarIndex;
+	Tool.ThirdValue = Target;
+
+	Tool.Color = COLOR_YELLOW;				// text color
+	Tool.TransparentLabelBackground = 0;	// opaque labels
+	Tool.TextAlignment = DT_RIGHT;			// text alignment (target marker is left/right of text)
+	Tool.ShowTickDifference = 1;			// text options
+	Tool.ShowPriceDifference = 1;
+	Tool.ShowCurrencyValue = 1;
+	Tool.FontFace = sc.GetChartTextFontFaceName();	// override chart drawing text font
+	Tool.FontSize = 14;
+	Tool.FontBold = 1;
+
+	// remaining options are controlled via the use tool levels
+	Tool.LevelColor[0] = COLOR_DARKRED;			// stop to entry line
+	Tool.LevelStyle[0] = LINESTYLE_SOLID;
+	Tool.LevelWidth[0] = 2;
+
+	Tool.LevelColor[1] = COLOR_DARKGREEN;		// entry to target line
+	Tool.LevelStyle[1] = LINESTYLE_SOLID;
+	Tool.LevelWidth[1] = 2;
+
+	Tool.LevelColor[2] = COLOR_WHITE;			// entry marker
+	Tool.LevelStyle[2] = MARKER_POINT;			// marker type
+	Tool.RetracementLevels[2] = 8;				// marker size
+	Tool.LevelWidth[2] = 3;						// marker width
+
+	Tool.LevelColor[3] = COLOR_RED;				// stop marker
+	Tool.LevelStyle[3] = MARKER_DASH;			// marker type
+	Tool.RetracementLevels[3] = 8;				// marker size
+	Tool.LevelWidth[3] = 3;						// marker width
+
+	Tool.LevelColor[4] = COLOR_ORANGE;			// target marker
+	Tool.LevelStyle[4] = MARKER_STAR;			// marker type
+	Tool.RetracementLevels[4] = 8;				// marker size
+	Tool.LevelWidth[4] = 3;						// marker width
+
+	sc.UseTool(Tool);  // here we make the function call to add the reward risk tool
+	LineNumber = Tool.LineNumber; // remember line number which has been automatically set
+}
+
